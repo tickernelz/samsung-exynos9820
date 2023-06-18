@@ -3,7 +3,7 @@ name: Build
 on: [push, workflow_dispatch]
 
 env:
-  TOOLCHAIN: proton
+  TOOLCHAIN: cruel
   INSTALLER: yes
 
 jobs:
@@ -58,12 +58,13 @@ jobs:
                        name="Cruel-devel"        \
                        toolchain=$TOOLCHAIN      \
                        os_patch_level=2022-04    \
+                       +always_permit            \
                        +magisk                   \
                        +nohardening              \
                        +ttl                      \
                        +wireguard                \
                        +cifs                     \
-                       -sdfat                    \
+                       +sdfat                    \
                        +ntfs                     \
                        +force_dex_wqhd           \
                        +morosound                \
