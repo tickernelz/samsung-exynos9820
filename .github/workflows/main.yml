@@ -1,6 +1,6 @@
 name: Build
 
-on: [push]
+on: [push, workflow_dispatch]
 
 env:
   TOOLCHAIN: cruel
@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        model: [ "G970F,G973F,G975F", "N970F,N975F" ]
+        model: [ "N976N", "N976B", "N975F" ]
 
     steps:
       - uses: actions/checkout@v2
@@ -57,12 +57,13 @@ jobs:
                        model=${{ matrix.model }} \
                        name="Cruel-v5.1"         \
                        toolchain=$TOOLCHAIN      \
+                       os_patch_level=2022-04    \
                        +magisk                   \
                        +nohardening              \
                        +ttl                      \
                        +wireguard                \
                        +cifs                     \
-                       +sdfat                    \
+                       -sdfat                    \
                        +ntfs                     \
                        +force_dex_wqhd           \
                        +morosound                \
