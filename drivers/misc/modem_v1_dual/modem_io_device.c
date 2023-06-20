@@ -1507,7 +1507,7 @@ static struct net_device_ops vnet_ops = {
 static void vnet_setup(struct net_device *ndev)
 {
 	ndev->netdev_ops = &vnet_ops;
-	ndev->type = ARPHRD_RAWIP;
+	ndev->type = ARPHRD_PPP;
 	ndev->flags = IFF_POINTOPOINT | IFF_NOARP | IFF_MULTICAST;
 	ndev->addr_len = 0;
 	ndev->hard_header_len = 0;
