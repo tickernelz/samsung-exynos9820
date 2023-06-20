@@ -58,7 +58,7 @@ jobs:
                        name="Cruel-v5.1"         \
                        toolchain=$TOOLCHAIN      \
                        os_patch_level=2022-04    \
-                       +magisk                   \
+                       +magisk=delta             \
                        +nohardening              \
                        +ttl                      \
                        +wireguard                \
