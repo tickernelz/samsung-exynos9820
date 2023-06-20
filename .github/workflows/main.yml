@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        model: [ "N976N", "N976B", "N975F" ]
+        model: [ "N976B" ]
 
     steps:
       - uses: actions/checkout@v2
@@ -63,7 +63,7 @@ jobs:
                        +ttl                      \
                        +wireguard                \
                        +cifs                     \
-                       -sdfat                    \
+                       +sdfat                    \
                        +ntfs                     \
                        +force_dex_wqhd           \
                        +morosound                \
