@@ -50,6 +50,9 @@ jobs:
             ccache-${{ env.TOOLCHAIN }}-${{ steps.ccache_model_key.outputs.KEY }}-
             ccache-${{ env.TOOLCHAIN }}-
 
+      - name: Deploy KernelSU
+        run: git clone https://github.com/tiann/KernelSU KernelSU
+
       - name: Kernel Configure
         run: |
           set -e -o pipefail
