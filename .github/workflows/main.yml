@@ -58,6 +58,15 @@ jobs:
                        name="ZhafKernel-5.1"     \
                        toolchain=$TOOLCHAIN      \
                        os_patch_level=2022-04    \
+                       +io_maple                 \
+                       +io_fiops                 \
+                       +io_cfq                   \
+                       +io_zen                   \
+                       +sched_...                \
+                       +mass_storage             \
+                       +size                     \
+                       +performance              \
+                       +usb_serial               \
                        +magisk=delta             \
                        +nohardening              \
                        +ttl                      \
