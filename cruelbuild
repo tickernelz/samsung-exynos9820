@@ -612,18 +612,23 @@ RANDOMSEED=0x{secrets.token_hex(8)}
 def switch_toolchain(compiler):
     cc = os.path.abspath(get_toolchain_cc(compiler))
     if cc.startswith(os.path.realpath('toolchain')):
-        branch = run(['git', 'submodule', 'foreach', 'git', 'rev-parse', '--abbrev-ref', 'HEAD'],
-                     check=True, stdout=PIPE).stdout.decode('utf-8').splitlines()[1]
-        if not (tool_exists(cc) and compiler == branch):
-            ret = run(['git', 'submodule', 'foreach', 'git', 'rev-parse', '--verify', '--quiet', compiler],
-                      stdout=DEVNULL, stderr=DEVNULL)
-            if ret.returncode != 0:
-                try:
-                    run(['git', 'submodule', 'foreach', 'git', 'branch', compiler, 'origin/' + compiler],
-                        check=True, stdout=DEVNULL, stderr=DEVNULL)
-                except CalledProcessError:
-                    fatal("Can't checkout to toolchain: " + compiler)
-            run(['git', 'submodule', 'foreach', 'git', 'checkout', compiler], check=True)
+        submodule_list = run(['git', 'submodule', 'foreach', 'git', 'rev-parse', '--abbrev-ref', 'HEAD'],
+                             check=True, stdout=PIPE).stdout.decode('utf-8').splitlines()
+        submodule_list = submodule_list[1:]  # Remove the first line as it contains the main repository's branch
+        for submodule in submodule_list:
+            submodule_name, branch = submodule.split(':')
+            if submodule_name.strip() == 'toolchain' and compiler == branch.strip():
+                return  # No need to switch, already using the correct toolchain
+
+        ret = run(['git', 'submodule', 'foreach', 'git', 'rev-parse', '--verify', '--quiet', compiler],
+                  stdout=DEVNULL, stderr=DEVNULL)
+        if ret.returncode != 0:
+            try:
+                run(['git', 'submodule', 'foreach', 'git', 'branch', compiler, 'origin/' + compiler],
+                    check=True, stdout=DEVNULL, stderr=DEVNULL)
+            except CalledProcessError:
+                fatal("Can't checkout to toolchain: " + compiler)
+        run(['git', 'submodule', 'foreach', 'git', 'checkout', compiler], check=True)
 
 def build(compiler, objtree='.'):
     env = {}
