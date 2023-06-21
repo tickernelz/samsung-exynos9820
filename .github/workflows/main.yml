@@ -3,7 +3,7 @@ name: Build
 on: [push, workflow_dispatch]
 
 env:
-  TOOLCHAIN: arm
+  TOOLCHAIN: cruel
   INSTALLER: yes
 
 jobs:
@@ -51,7 +51,7 @@ jobs:
             ccache-${{ env.TOOLCHAIN }}-
 
       - name: Deploy KernelSU
-        run: git clone https://github.com/tiann/KernelSU KernelSU
+        run: git clone --depth 1 -j $(nproc) --single-branch https://github.com/tickernelz/KernelSU KernelSU
 
       - name: Kernel Configure
         run: |
