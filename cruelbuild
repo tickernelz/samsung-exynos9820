@@ -611,24 +611,32 @@ RANDOMSEED=0x{secrets.token_hex(8)}
 
 def switch_toolchain(compiler):
     cc = os.path.abspath(get_toolchain_cc(compiler))
-    if cc.startswith(os.path.realpath('toolchain')):
-        submodule_list = run(['git', 'submodule', 'foreach', 'git', 'rev-parse', '--abbrev-ref', 'HEAD'],
-                             check=True, stdout=PIPE).stdout.decode('utf-8').splitlines()
-        submodule_list = submodule_list[1:]  # Remove the first line as it contains the main repository's branch
-        for submodule in submodule_list:
-            submodule_name, branch = submodule.split(':')
-            if submodule_name.strip() == 'toolchain' and compiler == branch.strip():
-                return  # No need to switch, already using the correct toolchain
+    submodule_dirs = run(['git', 'submodule', 'foreach', '--quiet', 'echo $path'],
+                        check=True, stdout=PIPE).stdout.decode('utf-8').splitlines()
+    
+    toolchain_submodule = None
+    for submodule_dir in submodule_dirs:
+        submodule_path = os.path.join(os.getcwd(), submodule_dir)
+        if 'toolchain' in submodule_path.lower():
+            toolchain_submodule = submodule_path
+            break
+    
+    if toolchain_submodule is None:
+        fatal("Can't find the toolchain submodule.")
 
-        ret = run(['git', 'submodule', 'foreach', 'git', 'rev-parse', '--verify', '--quiet', compiler],
+    branch = run(['git', '-C', toolchain_submodule, 'rev-parse', '--abbrev-ref', 'HEAD'],
+                 check=True, stdout=PIPE).stdout.decode('utf-8').strip()
+
+    if not (tool_exists(cc) and compiler == branch):
+        ret = run(['git', '-C', toolchain_submodule, 'rev-parse', '--verify', '--quiet', compiler],
                   stdout=DEVNULL, stderr=DEVNULL)
         if ret.returncode != 0:
             try:
-                run(['git', 'submodule', 'foreach', 'git', 'branch', compiler, 'origin/' + compiler],
+                run(['git', '-C', toolchain_submodule, 'branch', compiler, 'origin/' + compiler],
                     check=True, stdout=DEVNULL, stderr=DEVNULL)
             except CalledProcessError:
                 fatal("Can't checkout to toolchain: " + compiler)
-        run(['git', 'submodule', 'foreach', 'git', 'checkout', compiler], check=True)
+        run(['git', '-C', toolchain_submodule, 'checkout', compiler], check=True)
 
 def build(compiler, objtree='.'):
     env = {}
