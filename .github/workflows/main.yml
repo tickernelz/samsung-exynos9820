@@ -3,7 +3,7 @@ name: Build
 on: [push, workflow_dispatch]
 
 env:
-  TOOLCHAIN: arm
+  TOOLCHAIN: system-gcc
   INSTALLER: yes
 
 jobs:
