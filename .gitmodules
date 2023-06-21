@@ -1,3 +1,7 @@
 [submodule "scripts/toolchain"]
 	path = toolchain
 	url = https://github.com/CruelKernel/samsung-exynos9820-toolchain
+
+[submodule "KernelSU"]
+	path = KernelSU
+	url = https://github.com/tiann/KernelSU
