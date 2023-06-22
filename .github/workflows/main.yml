@@ -3,7 +3,7 @@ name: Build
 on: [push, workflow_dispatch]
 
 env:
-  TOOLCHAIN: system-clang
+  TOOLCHAIN: arm # working = default,cruel,samsung,arter97,arm,system-gcc . not working = google,proton,system-clang . optimized = samsung,default,arm
   INSTALLER: yes
 
 jobs:
