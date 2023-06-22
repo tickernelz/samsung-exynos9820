@@ -59,9 +59,9 @@ jobs:
                        toolchain=$TOOLCHAIN      \
                        os_patch_level=2022-04    \
                        +io_maple                 \
-                       +io_fiops                 \
-                       +io_cfq                   \
                        +io_zen                   \
+                       +io_cfq                   \
+                       +io_fiops                 \
                        +sched_performance        \
                        +sched_conservative       \
                        +sched_ondemand           \
