@@ -3,7 +3,7 @@ name: Build
 on: [push, workflow_dispatch]
 
 env:
-  TOOLCHAIN: cruel
+  TOOLCHAIN: samsung
   INSTALLER: yes
 
 jobs:
@@ -71,7 +71,7 @@ jobs:
                        +size                     \
                        +performance              \
                        +usb_serial               \
-                       +magisk=delta             \
+                       +magisk=canary            \
                        +nohardening              \
                        +ttl                      \
                        +wireguard                \
