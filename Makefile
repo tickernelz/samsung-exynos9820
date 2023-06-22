@@ -768,6 +768,7 @@ ifdef CONFIG_SOC_EXYNOS9820
 ifeq ($(cc-name),gcc)
 KBUILD_CFLAGS	+= $(call cc-option,-mcpu=cortex-a75.cortex-a55,$(call cc-option,-mcpu=cortex-a55))
 endif
+endif
 
 ifdef CONFIG_SOC_EXYNOS9820
 ifeq ($(cc-name),gcc)
