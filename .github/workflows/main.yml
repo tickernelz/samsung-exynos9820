@@ -3,7 +3,7 @@ name: Build
 on: [push, workflow_dispatch]
 
 env:
-  TOOLCHAIN: default
+  TOOLCHAIN: samsung
   INSTALLER: yes
 
 jobs:
