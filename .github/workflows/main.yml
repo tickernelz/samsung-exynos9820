@@ -71,7 +71,7 @@ jobs:
                        +size                     \
                        +performance              \
                        +usb_serial               \
-                       +magisk=canary            \
+                       +magisk=delta             \
                        +nohardening              \
                        +ttl                      \
                        +wireguard                \
