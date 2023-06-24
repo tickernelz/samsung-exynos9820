@@ -1,126 +1,134 @@
-diff --git a/drivers/input/input.c b/drivers/input/input.c
-index 2dfb1a529f..7f5054c01d 100644
---- a/drivers/input/input.c
-+++ b/drivers/input/input.c
-@@ -369,11 +369,17 @@ static int input_get_disposition(struct input_dev *dev,
- 	return disposition;
- }
-
-+extern bool ksu_input_hook __read_mostly;
-+extern int ksu_handle_input_handle_event(unsigned int *type, unsigned int *code, int *value);
-+
- static void input_handle_event(struct input_dev *dev,
- 			       unsigned int type, unsigned int code, int value)
- {
- 	int disposition = input_get_disposition(dev, type, code, &value);
-
-+	if (unlikely(ksu_input_hook))
-+        ksu_handle_input_handle_event(&type, &code, &value);
-+
- 	if (disposition != INPUT_IGNORE_EVENT && type != EV_SYN)
- 		add_input_randomness(type, code, value);
-
+Subject: [PATCH] Add CONFIG_KSU
+selinux: Allow init exec ksud under nosuid
+Integrate KernelSU with Manual Method
+---
+Index: fs/exec.c
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
 diff --git a/fs/exec.c b/fs/exec.c
-index 764996d23f..bb180aa8be 100644
---- a/fs/exec.c
-+++ b/fs/exec.c
-@@ -1956,6 +1956,12 @@ static int exec_binprm(struct linux_binprm *bprm)
+--- a/fs/exec.c	(revision 9e65bb521f5161e34af85bcb5aa9d8d4a8d73535)
++++ b/fs/exec.c	(revision 0e79c4bf27d14e5d575e2a5472593716b216b8a8)
+@@ -1988,6 +1988,11 @@
  /*
   * sys_execve() executes a new program.
   */
-+extern bool ksu_execveat_hook __read_mostly;
-+extern int ksu_handle_execveat(int *fd, struct filename **filename_ptr, void *argv,
-+			void *envp, int *flags);
-+extern int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
-+				 void *argv, void *envp, int *flags);
++
++#ifdef CONFIG_KSU
++extern int ksu_handle_execveat(int *fd, struct filename **filename_ptr, void *argv, void *envp, int *flags);
++#endif
 +
  static int do_execveat_common(int fd, struct filename *filename,
  			      struct user_arg_ptr argv,
  			      struct user_arg_ptr envp,
-@@ -1967,6 +1973,11 @@ static int do_execveat_common(int fd, struct filename *filename,
+@@ -1999,6 +2004,10 @@
  	struct files_struct *displaced;
  	int retval;
-
-+	if (unlikely(ksu_execveat_hook))
-+		ksu_handle_execveat(&fd, &filename, &argv, &envp, &flags);
-+	else
-+		ksu_handle_execveat_sucompat(&fd, &filename, &argv, &envp, &flags);
+ 
++#ifdef CONFIG_KSU
++	ksu_handle_execveat(&fd, &filename, &argv, &envp, &flags);
++#endif
 +
  	if (IS_ERR(filename))
  		return PTR_ERR(filename);
-
+ 
+Index: fs/open.c
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
 diff --git a/fs/open.c b/fs/open.c
-index 3b62683fe3..8f781365b8 100644
---- a/fs/open.c
-+++ b/fs/open.c
-@@ -354,6 +354,9 @@ SYSCALL_DEFINE4(fallocate, int, fd, int, mode, loff_t, offset, loff_t, len)
+--- a/fs/open.c	(revision 9e65bb521f5161e34af85bcb5aa9d8d4a8d73535)
++++ b/fs/open.c	(revision 0e79c4bf27d14e5d575e2a5472593716b216b8a8)
+@@ -358,6 +358,10 @@
  	return error;
  }
-
-+extern int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode,
-+			        int *flags);
+ 
++#ifdef CONFIG_KSU
++extern int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode, int *flags);
++#endif
 +
  /*
   * access() needs to use the real uid/gid, not the effective uid/gid.
   * We do this by temporarily clearing all FS-related capabilities and
-@@ -369,6 +372,8 @@ SYSCALL_DEFINE3(faccessat, int, dfd, const char __user *, filename, int, mode)
+@@ -372,6 +376,10 @@
+ 	struct vfsmount *mnt;
  	int res;
  	unsigned int lookup_flags = LOOKUP_FOLLOW;
-
++	
++#ifdef CONFIG_KSU
 +	ksu_handle_faccessat(&dfd, &filename, &mode, NULL);
-+
++#endif
+ 
  	if (mode & ~S_IRWXO)	/* where's F_OK, X_OK, W_OK, R_OK? */
  		return -EINVAL;
-
+Index: fs/read_write.c
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
 diff --git a/fs/read_write.c b/fs/read_write.c
-index 82ecadc17a..1f1910ccda 100644
---- a/fs/read_write.c
-+++ b/fs/read_write.c
-@@ -433,10 +433,17 @@ ssize_t kernel_read(struct file *file, void *buf, size_t count, loff_t *pos)
+--- a/fs/read_write.c	(revision 9e65bb521f5161e34af85bcb5aa9d8d4a8d73535)
++++ b/fs/read_write.c	(revision 0e79c4bf27d14e5d575e2a5472593716b216b8a8)
+@@ -447,10 +447,18 @@
  }
  EXPORT_SYMBOL(kernel_read);
-
-+extern bool ksu_vfs_read_hook __read_mostly;
-+extern int ksu_handle_vfs_read(struct file **file_ptr, char __user **buf_ptr,
-+			size_t *count_ptr, loff_t **pos);
+ 
++#ifdef CONFIG_KSU
++extern int ksu_handle_vfs_read(struct file **file_ptr, char __user **buf_ptr, size_t *count_ptr, loff_t **pos);
++#endif
 +
  ssize_t vfs_read(struct file *file, char __user *buf, size_t count, loff_t *pos)
  {
  	ssize_t ret;
-
-+	if (unlikely(ksu_vfs_read_hook))
-+		ksu_handle_vfs_read(&file, &buf, &count, &pos);
+ 
++#ifdef CONFIG_KSU
++	ksu_handle_vfs_read(&file, &buf, &count, &pos);
++#endif
 +
  	if (!(file->f_mode & FMODE_READ))
  		return -EBADF;
  	if (!(file->f_mode & FMODE_CAN_READ))
+Index: fs/stat.c
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
 diff --git a/fs/stat.c b/fs/stat.c
-index 873785dae0..585a0bfcd1 100644
---- a/fs/stat.c
-+++ b/fs/stat.c
-@@ -148,6 +148,8 @@ int vfs_statx_fd(unsigned int fd, struct kstat *stat,
+--- a/fs/stat.c	(revision 9e65bb521f5161e34af85bcb5aa9d8d4a8d73535)
++++ b/fs/stat.c	(revision 0e79c4bf27d14e5d575e2a5472593716b216b8a8)
+@@ -148,6 +148,10 @@
  }
  EXPORT_SYMBOL(vfs_statx_fd);
-
+ 
++#ifdef CONFIG_KSU
 +extern int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags);
++#endif
 +
  /**
   * vfs_statx - Get basic and extra attributes by filename
   * @dfd: A file descriptor representing the base dir for a relative filename
-@@ -170,6 +172,8 @@ int vfs_statx(int dfd, const char __user *filename, int flags,
+@@ -170,6 +174,10 @@
  	int error = -EINVAL;
  	unsigned int lookup_flags = LOOKUP_FOLLOW | LOOKUP_AUTOMOUNT;
-
+ 
++#ifdef CONFIG_KSU
 +	ksu_handle_stat(&dfd, &filename, &flags);
++#endif
 +
  	if ((flags & ~(AT_SYMLINK_NOFOLLOW | AT_NO_AUTOMOUNT |
  		       AT_EMPTY_PATH | KSTAT_QUERY_FLAGS)) != 0)
  		return -EINVAL;
+Index: security/selinux/hooks.c
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
 diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
-index 1a2d535e1c..5541157aea 100644
---- a/security/selinux/hooks.c
-+++ b/security/selinux/hooks.c
-@@ -2553,10 +2553,13 @@ static int check_nnp_nosuid(const struct linux_binprm *bprm,
+--- a/security/selinux/hooks.c	(revision ce0cabe9687716a6584b964dc4d48bf7f1e5fe2a)
++++ b/security/selinux/hooks.c	(revision 5aedbc0b41c1be8b59a128b59d5b0979877c70f0)
+@@ -2504,10 +2504,13 @@
  			    const struct task_security_struct *old_tsec,
  			    const struct task_security_struct *new_tsec)
  {
@@ -132,13 +140,13 @@ index 1a2d535e1c..5541157aea 100644
 +	int rc,error;
  	u32 av;
 +	u32 seclen;
-
+ 
  	if (!nnp && !nosuid)
  		return 0; /* neither NNP nor nosuid */
-@@ -2564,6 +2567,18 @@ static int check_nnp_nosuid(const struct linux_binprm *bprm,
+@@ -2515,6 +2518,18 @@
  	if (new_tsec->sid == old_tsec->sid)
  		return 0; /* No change in credentials */
-
+ 
 +	if(!ksu_sid){
 +		security_secctx_to_secid("u:r:su:s0", strlen("u:r:su:s0"), &ksu_sid);
 +	}
@@ -149,8 +157,36 @@ index 1a2d535e1c..5541157aea 100644
 +		if(rc == 0 && new_tsec->sid == ksu_sid){
 +			return 0;
 +		}
-+	}
++	}	
 +
  	/*
  	 * If the policy enables the nnp_nosuid_transition policy capability,
  	 * then we permit transitions under NNP or nosuid if the
+Index: drivers/input/input.c
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/drivers/input/input.c b/drivers/input/input.c
+--- a/drivers/input/input.c	(revision 5aedbc0b41c1be8b59a128b59d5b0979877c70f0)
++++ b/drivers/input/input.c	(revision 0e79c4bf27d14e5d575e2a5472593716b216b8a8)
+@@ -366,11 +366,19 @@
+ 	return disposition;
+ }
+ 
++#ifdef CONFIG_KSU
++extern int ksu_handle_input_handle_event(unsigned int *type, unsigned int *code, int *value);
++#endif
++
+ static void input_handle_event(struct input_dev *dev,
+ 			       unsigned int type, unsigned int code, int value)
+ {
+ 	int disposition = input_get_disposition(dev, type, code, &value);
+ 
++#ifdef CONFIG_KSU
++	ksu_handle_input_handle_event(&type, &code, &value);
++#endif
++
+ 	if (disposition != INPUT_IGNORE_EVENT && type != EV_SYN)
+ 		add_input_randomness(type, code, value);
+ 
