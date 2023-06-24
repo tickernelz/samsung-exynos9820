@@ -59,7 +59,7 @@ jobs:
             rm -rf "./drivers/kernelsu"
           fi
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
-          wget -q "https://github.com/rushiranpise/android_kernel_samsung_exynos9610_mint/raw/patch/kernelsu.patch" -O KernelSU.patch
+          wget -q "https://raw.githubusercontent.com/tickernelz/samsung-exynos9820/kernelsu/kernelsu.patch" -O KernelSU.patch
           git apply ./KernelSU.patch
           model=$(echo "${{ matrix.model }}" | cut -d ',' -f 1)
           case $model in
