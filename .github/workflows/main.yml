@@ -3,7 +3,7 @@ name: Build
 on: [push, workflow_dispatch]
 
 env:
-  TOOLCHAIN: default
+  TOOLCHAIN: proton
   INSTALLER: yes
 
 jobs:
@@ -55,10 +55,10 @@ jobs:
           set -e -o pipefail
           ./cruelbuild config                    \
                        model=${{ matrix.model }} \
-                       name="Cruel-devel"        \
+                       name="Cruel-KernelSU"     \
                        toolchain=$TOOLCHAIN      \
                        os_patch_level=2022-04    \
-                       +magisk=delta             \
+                       -magisk                   \
                        +nohardening              \
                        +ttl                      \
                        +wireguard                \
