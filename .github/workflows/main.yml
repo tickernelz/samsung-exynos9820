@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        model: [ "G970F", "G973F", "G975F", "G977B", "G977N", "N976N", "N976B", "N975F" ]
+        model: [ "G975F" ]
 
     steps:
       - uses: actions/checkout@v3
@@ -92,7 +92,7 @@ jobs:
           set -e -o pipefail
           ./cruelbuild config                    \
                        model=${{ matrix.model }} \
-                       name="Cruel-KernelSU"     \
+                       name="Nurgatin L.G."     \
                        toolchain=$TOOLCHAIN      \
                        os_patch_level=2022-04    \
                        -magisk                   \
@@ -105,6 +105,9 @@ jobs:
                        +force_dex_wqhd           \
                        +morosound                \
                        +boeffla_wl_blocker       \
+                       +1000hz                   \
+                       +usb_serial               \
+                       
           2>&1 | tee config.info
 
       - name: Install gcc-aarch64-linux-gnu
